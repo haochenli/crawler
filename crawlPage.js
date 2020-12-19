@@ -8,9 +8,19 @@ let rawdata = fs.readFileSync('./pageUrl.json');
 let jsonData = JSON.parse(rawdata);
 const vivoUrl = jsonData.vivo
 
-vivoUrl.forEach(url => {
-  crawlerjs(crawOptions(url))
+var interval = 10000; // how much time should the delay between two iterations be (in milliseconds)?
+;
+console.log('start crawl page');
+
+vivoUrl.forEach((url,index) => {
+  setTimeout(function () {
+    writeToResult(url)
+    crawlerjs(crawOptions(url))
+  }, index * interval);
+  
 })
+
+// crawlerjs(crawOptions('https://www.gsmarena.com/vivo_y30_standard-10643.php'))
 
 function crawOptions (urlParam) {
   return {
@@ -23,7 +33,7 @@ function crawOptions (urlParam) {
         selector: '#specs-list',
         callback: function(err, html, url, response){
           // const title = HTMLParser.parse(html.children('title').toString());
-          console.log('----------------------------------------------')
+          writeToResult('-------------------')
           console.log('crawler target is: ' + url.get)
           if(!err){
           data = {};
@@ -62,7 +72,7 @@ function crawOptions (urlParam) {
             
           });
           }
-          console.log('----------------------------------------------')
+          writeToResult('-------------------\r\n')
         }
       }
     ]
@@ -72,6 +82,8 @@ function crawOptions (urlParam) {
 
 
 function writeToResult (content) {
-  fs.writeFileSync('./result.txt', content);
+  fs.appendFileSync('./result.txt', content + `\r\n`, function (err) {
+    if (err) throw err;
+  });
 }
  
