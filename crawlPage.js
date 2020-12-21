@@ -14,7 +14,6 @@ console.log('start crawl page');
 
 vivoUrl.forEach((url,index) => {
   setTimeout(function () {
-    writeToResult(url)
     crawlerjs(crawOptions(url))
   }, index * interval);
   
@@ -33,10 +32,9 @@ function crawOptions (urlParam) {
         selector: '#specs-list',
         callback: function(err, html, url, response){
           // const title = HTMLParser.parse(html.children('title').toString());
-          writeToResult('-------------------')
-          console.log('crawler target is: ' + url.get)
+          const data = {name: url.get}
+
           if(!err){
-          data = {};
           const root = HTMLParser.parse(html.children('table').toString());
           root.childNodes.forEach(table => {
               let trs = table.querySelectorAll('tr')
@@ -49,8 +47,8 @@ function crawOptions (urlParam) {
                 if(result.indexOf('href=') > -1){
                     result = content.querySelector('a').innerHTML
                 }
-                writeToResult(th.innerHTML + ': ' + result)
-                console.log(th.innerHTML + ': ' + result);
+                data[th.innerHTML] = result
+                // writeToResult(th.innerHTML + ': ' + result)
               } else {
                 trs.forEach(tr => {
                   let td = tr.querySelector('.ttl')
@@ -66,13 +64,17 @@ function crawOptions (urlParam) {
                   if(result.indexOf('href=') > -1){
                       result = content.querySelector('a').innerHTML
                   }
-                  writeToResult(key + ': ' + result)
+                  data[key] = result
+                  // writeToResult(key + ': ' + result)
                 })
               }
             
           });
           }
-          writeToResult('-------------------\r\n')
+          // 一个型号的机器完成
+          writeToResult(data)
+          // console.log(data)
+
         }
       }
     ]
@@ -82,7 +84,16 @@ function crawOptions (urlParam) {
 
 
 function writeToResult (content) {
-  fs.appendFileSync('./result.txt', content + `\r\n`, function (err) {
+  let currentContent = {}
+  fs.readFileSync('./result.json', (err, data) => {
+      if (err) throw err;
+      currentContent = JSON.parse(data);
+  });
+
+  currentContent[content.name] = content
+  console.log(currentContent);
+  const result = JSON.stringify(currentContent)
+  fs.writeFileSync('./result.json', result, function (err) {
     if (err) throw err;
   });
 }
